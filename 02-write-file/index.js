@@ -10,9 +10,14 @@ stdout.write('Type the text:\n');
 stdin.on('data', data => {
   const text = data.toString();
   if (text.trim() === 'exit') {
-    process.exit();
+    sayBye();
   }
   output.write(text);
 });
 
-process.on('exit', () => console.log('Bye!'));
+process.on('SIGINT', sayBye);
+
+function sayBye() {
+  console.log('Bye!');
+  process.exit();
+}
