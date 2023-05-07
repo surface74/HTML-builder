@@ -20,10 +20,10 @@ async function mergeFiles(sourcePath, destinationFile, fileExtention) {
       pipeline(
         createReadStream(join(sourcePath, file.name), 'utf-8'),
         createWriteStream(destinationFile, { flags: 'a+' }),
-        (error) => { if (error) { console.log(error); } });
+        (error) => { if (error) { console.error(error); } });
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 }
 
