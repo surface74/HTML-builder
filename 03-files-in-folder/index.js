@@ -20,9 +20,5 @@ async function getFilesInForlder(path) {
 }
 
 function formatFileInfo(fileName, fileStat) {
-  return `${basename(fileName, extname(fileName))} - ${extname(fileName).slice(1)} - ${getSizeInKb(fileStat.size)}kb`;
-}
-
-function getSizeInKb(size) {
-  return Math.round(size / 1024 * 1000) / 1000;
+  return `${basename(fileName, extname(fileName))} - ${extname(fileName).slice(1)} - ${fileStat.size / 1000}Kb`;
 }
