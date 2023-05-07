@@ -1,6 +1,7 @@
 const { createWriteStream, createReadStream } = require('fs');
 const { join } = require('path');
 const { rm, mkdir, readdir, copyFile, readFile, writeFile } = require('fs/promises');
+const { pipeline } = require('stream');
 
 buildPage(process.argv[1]);
 
@@ -21,24 +22,28 @@ async function buildPage(root) {
     }
 
     await writeFile(join(destinationDir, 'index.html'), template);
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error(error);
   }
 }
 
 async function mergeFiles(sourcePath, destinationFile, fileExtention) {
-  let output = createWriteStream(destinationFile);
-  await readdir(sourcePath, { withFileTypes: true })
-    .then(entries => entries
-      .filter(entry => entry.isFile() && entry.name.match(new RegExp(`.${fileExtention}$`, 'i')))
-      .forEach((entry, index) => {
-        if (index) {
-          output = createWriteStream(destinationFile, { flags: 'a+' });
-        }
-        const input = createReadStream(join(sourcePath, entry.name), 'utf-8');
-        input.pipe(output);
-      }))
-    .catch(err => console.error(err));
+  try {
+    const dirEntries = await readdir(sourcePath, { withFileTypes: true });
+    const files = dirEntries
+      .filter(entry => entry.isFile() && entry.name.match(new RegExp(`.${fileExtention}$`, 'i')));
+
+    createWriteStream(destinationFile).close(); // clear destination file
+
+    for (const file of files) {
+      pipeline(
+        createReadStream(join(sourcePath, file.name), 'utf-8'),
+        createWriteStream(destinationFile, { flags: 'a+' }),
+        (error) => { if (error) { console.error(error); } });
+    }
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 async function copyDir(source, destination) {
